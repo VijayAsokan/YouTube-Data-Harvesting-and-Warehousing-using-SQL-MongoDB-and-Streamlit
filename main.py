@@ -6,7 +6,7 @@ import streamlit as st
 
 #CONNECTING TO GOOGLE API
 
-api_key = "AIzaSyBPKV1QryoZvJjLmz5f1EeTG0_D4AiwHpo"
+api_key = "Your Api Key"
 api_service_name = "youtube"
 api_version = "v3"
 youtube = build(api_service_name, api_version, developerKey = api_key)
@@ -191,7 +191,7 @@ client = pymongo.MongoClient("mongodb://localhost:27017")
 def channelTable():
     mydb = psycopg2.connect(host="localhost",
                             user="postgres",
-                            password="15071965",
+                            password="yourpassword",
                             database="YoutubeData",
                             port="5432")
 
@@ -254,7 +254,7 @@ def channelTable():
 def videoTable():
     mydb = psycopg2.connect(host="localhost",
                             user="postgres",
-                            password="15071965",
+                            password="yourpassword",
                             database="YoutubeData",
                             port="5432")
 
@@ -343,7 +343,7 @@ def videoTable():
 def playlistTable():
     mydb = psycopg2.connect(host="localhost",
                             user="postgres",
-                            password="15071965",
+                            password="yourpassword",
                             database="YoutubeData",
                             port="5432")
 
@@ -403,7 +403,7 @@ def playlistTable():
 def commentTable():
     mydb = psycopg2.connect(host="localhost",
                             user="postgres",
-                            password="15071965",
+                            password="yourpassword",
                             database="YoutubeData",
                             port="5432")
 
@@ -525,7 +525,7 @@ if table == 'Comments Table':
 
 mydb = psycopg2.connect(host = "localhost",
                             user = "postgres",
-                            password = "15071965",
+                            password = "yourpassword",
                             database = "YoutubeData",
                             port = "5432")
 

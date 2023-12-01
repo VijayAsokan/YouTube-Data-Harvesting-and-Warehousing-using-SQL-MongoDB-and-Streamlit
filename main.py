@@ -6,7 +6,7 @@ import streamlit as st
 
 #CONNECTING TO GOOGLE API
 
-api_key = "Your Api Key"
+api_key = "YourApiKey"
 api_service_name = "youtube"
 api_version = "v3"
 youtube = build(api_service_name, api_version, developerKey = api_key)
@@ -19,94 +19,91 @@ if st.button("Click to verify channel details availability"):
     client = pymongo.MongoClient("mongodb://localhost:27017")
     db = client["Youtube_Data"]
     col1 = db["ChannelDetails"]
-
+    
     # Assuming you have channel_id defined somewhere before this point
     # If not, make sure to define it before checking in the channel_list
-
-    for chlist in col1.find({}, {'_id': 0, 'channelinfo': 1}):
+    
+    for chlist in col1.find({},{'_id':0, 'channelinfo':1}):
         channel_list.append(chlist['channelinfo']['channelId'])
-
-    st.write(channel_list)
+    
+    st.dataframe(channel_list)
     # Now check if channel_id is in channel_list
-    if channel_id in channel_list:
-        st.success('Channel details already exist')
-    else:
-        st.success('Click upload button to get channel details')
 
+        
 
 def get_channel_details(youtube, channel_id):
+    
     request = youtube.channels().list(
-        part="snippet,contentDetails,statistics",
-        id=channel_id
-    )
+            part="snippet,contentDetails,statistics",
+            id= channel_id
+        )
     response = request.execute()
 
     for item in response['items']:
-        data = {
-            'channelName': item['snippet']['title'],
-            'channelId': item['contentDetails']['relatedPlaylists']['uploads'],
-            'subscribers': item['statistics']['subscriberCount'],
-            'views': item['statistics']['viewCount'],
-            'totalVideos': item['statistics']['videoCount'],
-            'playlistId': item['contentDetails']['relatedPlaylists']['uploads'],
-            'description': item['snippet']['description']
-        }
-
+            data = {
+                    'channelName' : item['snippet']['title'],
+                    'channelId' : item['contentDetails']['relatedPlaylists']['uploads'],
+                    'subscribers' : item['statistics']['subscriberCount'],
+                    'views' : item['statistics']['viewCount'],
+                    'totalVideos' : item['statistics']['videoCount'],
+                    'playlistId' : item['contentDetails']['relatedPlaylists']['uploads'],
+                    'description' : item['snippet']['description']
+                }
+            
     return data
-
 
 def get_video_id(youtube, channel_id):
     video_ids = []
     # get Uploads playlist id
-    response = youtube.channels().list(id=channel_id,
-                                       part='contentDetails').execute()
+    response = youtube.channels().list(id=channel_id, 
+                                  part='contentDetails').execute()
     playlist_id = response['items'][0]['contentDetails']['relatedPlaylists']['uploads']
     next_page_token = None
-
+    
     while True:
-        res = youtube.playlistItems().list(part='snippet',
-                                           playlistId=playlist_id,
-                                           maxResults=50,
-                                           pageToken=next_page_token).execute()
-
+        res = youtube.playlistItems().list( part = 'snippet',
+                                           playlistId = playlist_id, 
+                                           maxResults = 50,
+                                           pageToken = next_page_token).execute()
+        
         for i in range(len(res['items'])):
             video_ids.append(res['items'][i]['snippet']['resourceId']['videoId'])
         next_page_token = res.get('nextPageToken')
-
+        
         if next_page_token is None:
             break
     return video_ids
 
-
 def get_video_details(youtube, video_ids):
+    
     all_video_info = []
-
+    
     for video_id in video_ids:
         request = youtube.videos().list(
-            part="snippet,contentDetails,statistics",
-            id=video_id)
-
-        response = request.execute()
+                    part="snippet,contentDetails,statistics",
+                    id= video_id)
+        
+        response = request.execute() 
 
         for video in response['items']:
-            data = dict(
-                Channel_name=video['snippet']['channelTitle'],
-                Channel_id=video['snippet']['channelId'],
-                Video_id=video['id'],
-                Title=video['snippet']['title'],
-                Tags=video['snippet'].get('tags'),
-                Thumbnail=video['snippet']['thumbnails']['default']['url'],
-                Description=video['snippet']['description'],
-                Published_date=video['snippet']['publishedAt'],
-                Duration=video['contentDetails']['duration'],
-                Views=video['statistics']['viewCount'],
-                Likes=video['statistics'].get('likeCount'),
-                Comments=video['statistics'].get('commentCount'),
-                Favorite_count=video['statistics']['favoriteCount'],
-                Definition=video['contentDetails']['definition'],
-                Caption_status=video['contentDetails']['caption']
-            )
-            all_video_info.append(data)
+             data = dict(
+                  Channel_name = video['snippet']['channelTitle'],
+                    Channel_id = video['snippet']['channelId'],
+                    Video_id = video['id'],
+                    Title = video['snippet']['title'],
+                    Tags = video['snippet'].get('tags'),
+                    Thumbnail = video['snippet']['thumbnails']['default']['url'],
+                    Description = video['snippet']['description'],
+                    Published_date = video['snippet']['publishedAt'],
+                    Duration = video['contentDetails']['duration'],
+                    Views = video['statistics']['viewCount'],
+                    Likes = video['statistics'].get('likeCount'),
+                    Comments = video['statistics'].get('commentCount'),
+                    Favorite_count = video['statistics']['favoriteCount'],
+                    Definition = video['contentDetails']['definition'],
+                    Caption_status = video['contentDetails']['caption']
+             )
+             all_video_info.append(data)
 
     return all_video_info
 
@@ -129,7 +126,7 @@ def get_comments(youtube, video_ids):
                         Author = comments['snippet']['topLevelComment']['snippet']['authorDisplayName'],
                         Date_posted = comments['snippet']['topLevelComment']['snippet']['publishedAt'],
                         Like_count = comments['snippet']['topLevelComment']['snippet']['likeCount'],
-                        Reply_count = comments['snippet']['totalReplyCount']
+                        Reply_count = comments['snippet']['totalReplyCount']  
                         )
                 comment_data.append(data)
         except:
@@ -159,7 +156,6 @@ def get_playlists(youtube, channel_id):
 
     return all_data
 
-
 def channel_data(channel_id):
     channel_details = get_channel_details(youtube, channel_id)
     video_ids = get_video_id(youtube, channel_id)
@@ -172,10 +168,10 @@ def channel_data(channel_id):
     col1 = db["ChannelDetails"]
 
     col1.insert_one({'channelinfo': channel_details,
-                     'playlistinfo': playlist_details,
-                     'videoinfo': video_details,
-                     'commentinfo': comment_details})
-
+                    'playlistinfo' : playlist_details,
+                    'videoinfo': video_details,
+                    'commentinfo': comment_details})
+    
     return st.success('Upload completed')
 
 if st.button('upload'):
@@ -184,16 +180,14 @@ if st.button('upload'):
         st.success('channel details uploaded')
     except:
         st.write(":red[Enter correct channel id]")
-
 client = pymongo.MongoClient("mongodb://localhost:27017")
 
-
 def channelTable():
-    mydb = psycopg2.connect(host="localhost",
-                            user="postgres",
-                            password="yourpassword",
-                            database="YoutubeData",
-                            port="5432")
+    mydb = psycopg2.connect(host = "localhost",
+                            user = "postgres",
+                            password = "password",
+                            database = "YoutubeData",
+                            port = "5432")
 
     cursor = mydb.cursor()
 
@@ -202,7 +196,7 @@ def channelTable():
     mydb.commit()
 
     try:
-        create_query = """create table if not exists channels(channelName varchar(100),
+        create_query="""create table if not exists channels(channelName varchar(100),
                                                             channelId varchar(100) primary key,
                                                             subscribers bigint,
                                                             views bigint,
@@ -214,15 +208,17 @@ def channelTable():
     except:
         print('Table created')
 
-    # Getting data from Mongodb and convert into dataframe
+
+    # Getting data from Mongodb and convert into dataframe   
     channel_list = []
     db = client["Youtube_Data"]
     col1 = db["ChannelDetails"]
 
-    for channel_data in col1.find({}, {"_id": 0, "channelinfo": 1}):
+    for channel_data in col1.find({},{"_id":0,"channelinfo":1}):
         channel_list.append(channel_data['channelinfo'])
     df = pd.DataFrame(channel_list)
-
+    
+    
     # insert rows in sql database
     for index, row in df.iterrows():
         insert_query = """insert into channels(channelName,
@@ -232,37 +228,38 @@ def channelTable():
                                             totalVideos,
                                             playlistId,
                                             description)
-
+                                            
                                             values(%s, %s, %s, %s, %s, %s, %s)"""
-
+                                    
         values = (row['channelName'],
-                  row['channelId'],
-                  row['subscribers'],
-                  row['views'],
-                  row['totalVideos'],
-                  row['playlistId'],
-                  row['description'])
-
+                row['channelId'],
+                row['subscribers'],
+                row['views'],
+                row['totalVideos'],
+                row['playlistId'],
+                row['description'])
+        
+        
         try:
-            cursor.execute(insert_query, values)
-            mydb.commit()
+                    cursor.execute(insert_query, values)
+                    mydb.commit()
         except psycopg2.Error as e:
-            print(f"Error inserting row at index {index}: {e}")
-            mydb.rollback()  # Rollback the transaction in case of an error
+                    print(f"Error inserting row at index {index}: {e}")
+                    mydb.rollback()  # Rollback the transaction in case of an error
 
 
 def videoTable():
-    mydb = psycopg2.connect(host="localhost",
-                            user="postgres",
-                            password="yourpassword",
-                            database="YoutubeData",
-                            port="5432")
+    mydb = psycopg2.connect(host = "localhost",
+                                user = "postgres",
+                                password = "password",
+                                database = "YoutubeData",
+                                port = "5432")
 
     cursor = mydb.cursor()
 
     drop_query = """drop table if exists videos"""
     cursor.execute(drop_query)
-    mydb.commit()
+    mydb.commit()   
 
     try:
         create_query = """create table if not exists videos(Channel_name varchar(100),
@@ -285,15 +282,17 @@ def videoTable():
     except:
         print("Video list created")
 
-    # Getting data from Mongodb and convert into dataframe
+    
+    # Getting data from Mongodb and convert into dataframe   
     videolist = []
     db = client["Youtube_Data"]
     col1 = db["ChannelDetails"]
 
-    for video_data in col1.find({}, {"_id": 0, "videoinfo": 1}):
+    for video_data in col1.find({},{"_id":0,"videoinfo":1}):
         for i in range(len(video_data['videoinfo'])):
             videolist.append(video_data['videoinfo'][i])
     df2 = pd.DataFrame(videolist)
+
 
     # insert rows in sql database
     for index, row in df2.iterrows():
@@ -313,25 +312,27 @@ def videoTable():
                                             Definition,
                                             Caption_status
                                             )
-
+                                            
                                             values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-
+                                    
         values = (row['Channel_name'],
-                  row['Channel_id'],
-                  row['Video_id'],
-                  row['Title'],
-                  row['Tags'],
-                  row['Thumbnail'],
-                  row['Description'],
-                  row['Published_date'],
-                  row['Duration'],
-                  row['Views'],
-                  row['Likes'],
-                  row['Comments'],
-                  row['Favorite_count'],
-                  row['Definition'],
-                  row['Caption_status'])
+                    row['Channel_id'],
+                    row['Video_id'],
+                    row['Title'],
+                    row['Tags'],
+                    row['Thumbnail'],
+                    row['Description'],
+                    row['Published_date'],
+                    row['Duration'],
+                    row['Views'],
+                    row['Likes'],
+                    row['Comments'],
+                    row['Favorite_count'],
+                    row['Definition'],
+                    row['Caption_status'])
 
+                
+        
         try:
             cursor.execute(insert_query, values)
             mydb.commit()
@@ -340,18 +341,19 @@ def videoTable():
             mydb.rollback()  # Rollback the transaction in case of an error
 
 
+
 def playlistTable():
-    mydb = psycopg2.connect(host="localhost",
-                            user="postgres",
-                            password="yourpassword",
-                            database="YoutubeData",
-                            port="5432")
+    mydb = psycopg2.connect(host = "localhost",
+                            user = "postgres",
+                            password = "password",
+                            database = "YoutubeData",
+                            port = "5432")
 
     cursor = mydb.cursor()
 
     drop_query = """drop table if exists playlists"""
     cursor.execute(drop_query)
-    mydb.commit()
+    mydb.commit()   
 
     try:
         create_query = """create table if not exists playlists(Playlist_Id varchar(100) primary key,
@@ -364,16 +366,17 @@ def playlistTable():
         mydb.commit()
     except:
         print("Playlist created")
-    # Getting data from Mongodb and convert into dataframe
+ # Getting data from Mongodb and convert into dataframe   
     playlist = []
     db = client["Youtube_Data"]
     col1 = db["ChannelDetails"]
 
-    for playlist_data in col1.find({}, {"_id": 0, "playlistinfo": 1}):
+    for playlist_data in col1.find({},{"_id":0,"playlistinfo":1}):
         for i in range(len(playlist_data['playlistinfo'])):
             playlist.append(playlist_data['playlistinfo'][i])
     df1 = pd.DataFrame(playlist)
-
+    
+    
     # insert rows in sql database
     for index, row in df1.iterrows():
         insert_query = """insert into playlists(Playlist_Id,
@@ -382,9 +385,9 @@ def playlistTable():
                                             Channel_Name,
                                             Published_In,
                                             Video_count)
-
+                                            
                                             values(%s, %s, %s, %s, %s, %s)"""
-
+                                    
         values = (row['Playlist_Id'],
                   row['Title'],
                   row['Channel_id'],
@@ -392,6 +395,9 @@ def playlistTable():
                   row['Published_In'],
                   row['Video_count'])
 
+                
+        
+        
         try:
             cursor.execute(insert_query, values)
             mydb.commit()
@@ -399,19 +405,19 @@ def playlistTable():
             print(f"Error inserting row at index {index}: {e}")
             mydb.rollback()  # Rollback the transaction in case of an error
 
-
-def commentTable():
-    mydb = psycopg2.connect(host="localhost",
-                            user="postgres",
-                            password="yourpassword",
-                            database="YoutubeData",
-                            port="5432")
+def commentTable():   
+    mydb = psycopg2.connect(host = "localhost",
+                            user = "postgres",
+                            password = "password",
+                            database = "YoutubeData",
+                            port = "5432")
 
     cursor = mydb.cursor()
 
     drop_query = """drop table if exists comments"""
     cursor.execute(drop_query)
-    mydb.commit()
+    mydb.commit()   
+
 
     try:
         create_query = """create table if not exists comments(Comment_id varchar(100) primary key,
@@ -425,15 +431,16 @@ def commentTable():
         mydb.commit()
     except:
         print("comment list created")
-    # Getting data from Mongodb and convert into dataframe
+    # Getting data from Mongodb and convert into dataframe   
     comment = []
     db = client["Youtube_Data"]
     col1 = db["ChannelDetails"]
 
-    for comment_data in col1.find({}, {"_id": 0, "commentinfo": 1}):
+    for comment_data in col1.find({},{"_id":0,"commentinfo":1}):
         for i in range(len(comment_data['commentinfo'])):
             comment.append(comment_data['commentinfo'][i])
     df3 = pd.DataFrame(comment)
+
 
     # insert rows in sql database
     for index, row in df3.iterrows():
@@ -444,17 +451,20 @@ def commentTable():
                                             Date_posted,
                                             Like_count,
                                             Reply_count)
-
+                                            
                                             values(%s, %s, %s, %s, %s, %s, %s)"""
-
+                                    
         values = (row['Comment_id'],
-                  row['Video_id'],
-                  row['Comment'],
-                  row['Author'],
-                  row['Date_posted'],
-                  row['Like_count'],
-                  row['Reply_count'])
+                    row['Video_id'],
+                    row['Comment'],
+                    row['Author'],
+                    row['Date_posted'],
+                    row['Like_count'],
+                    row['Reply_count'])
 
+                
+        
+        
         try:
             cursor.execute(insert_query, values)
             mydb.commit()
@@ -500,7 +510,7 @@ def table_video():
         for i in range(len(video_data['videoinfo'])):
             videolist.append(video_data['videoinfo'][i])
     df2 = st.dataframe(videolist)
-    return df2
+    return df2    
 
 def table_comment():
     db = client["Youtube_Data"]
@@ -511,6 +521,7 @@ def table_comment():
             comment.append(comment_data['commentinfo'][i])
     df3 = st.dataframe(comment)
     return df3
+
 
 table = st.radio('Select to table to view', ('Channel Table','Video Table','Playlist Table','Comments Table'))
 
@@ -525,15 +536,12 @@ if table == 'Comments Table':
 
 mydb = psycopg2.connect(host = "localhost",
                             user = "postgres",
-                            password = "yourpassword",
+                            password = "password",
                             database = "YoutubeData",
                             port = "5432")
 
 cursor = mydb.cursor()
-
-drop_query = """drop table if exists videos"""
-cursor.execute(drop_query)
-mydb.commit()
+mydb.commit()   
 
 questions = st.selectbox('Questions', ('1. Names of all videos and their corresponding channels',
                                        '2. Channels with the most number of videos and the number of videos they have',
@@ -544,7 +552,6 @@ questions = st.selectbox('Questions', ('1. Names of all videos and their corresp
                                        '7. Total number of views for each channel and their corresponding channel names',
                                        '8. Names of channels that published videos in the year 2022',
                                        '9. Videos with the highest number of comments and their corresponding channel names'))
-
 
 if questions == '1. Names of all videos and their corresponding channels':
     query1 = '''select title,channel_name from videos'''
@@ -618,3 +625,4 @@ else:
     s9 = cursor.fetchall()
     dfs9 = pd.DataFrame(s9, columns = ['channel','video','total no of comments'])
     st.write(dfs9)
+    

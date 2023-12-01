@@ -1,6 +1,7 @@
 # YouTube-Data-Harvesting-and-Warehousing-using-SQL-MongoDB-and-Streamlit
 
 **Project Overview:**
+
 I developed a Streamlit application that seamlessly integrates with the YouTube API v3 to efficiently collect and manage data related to YouTube channels, videos, comments, and playlists. The integration with YouTube API v3 serves as the backbone for retrieving up-to-date and accurate information directly from the YouTube platform.
 
 **YouTube API v3 Integration:**
@@ -26,6 +27,7 @@ To enhance data organization and support relational queries, I implemented a mig
 **User Interface Features:**
 
 **1. Channel ID Entry:**
+
 Users can input a channel ID via a designated field in the app. This feature ensures streamlined data entry while displaying existing channel IDs to prevent duplicate entries and maintain data integrity.
 
 **2. Upload Button (MongoDB):**
